@@ -1,4 +1,4 @@
-import 'src/styles/GlassIcons.css';
+import './GlassIcons.css';
 
 const gradientMapping = {
   blue: 'linear-gradient(hsl(223, 90%, 50%), hsl(208, 90%, 50%))',
