@@ -4,5 +4,5 @@
   publish = "build"
 
 [functions]
-  # Netlify default is netlify/functions; change if you place functions elsewhere
-  directory = "netlify/functions"
+  directory = "src/functions"
+
