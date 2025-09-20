@@ -1,0 +1,8 @@
+[build]
+  command = "npm run build"
+  # set publish to "build" (CRA) or "dist" (Vite); change accordingly
+  publish = "build"
+
+[functions]
+  # Netlify default is netlify/functions; change if you place functions elsewhere
+  directory = "netlify/functions"
