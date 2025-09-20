@@ -1,13 +1,13 @@
 import React, { useState, useRef } from 'react';
-import SplitText from 'src/components/SplitText.jsx';
-import DecryptedText from 'src/components/DecryptedText.jsx';
-import BubbleMenu from 'src/components/BubbleMenu.jsx';
-import GlassIcons from 'src/components/GlassIcons.jsx';
-import SpotlightCard from './components/SpotlightCard.jsx';
-import AgentList from 'src/components/AgentList.jsx';
-import ChatBubble from 'src/components/ChatBubble.jsx';
-import Button from 'src/components/Button.jsx';
-import AgentControls from 'src/components/AgentControls.jsx';
+import SplitText from '//src/components/SplitText.jsx';
+import DecryptedText from '//src/components/DecryptedText.jsx';
+import BubbleMenu from '//src/components/BubbleMenu.jsx';
+import GlassIcons from '//src/components/GlassIcons.jsx';
+import SpotlightCard from '//src/components/SpotlightCard.jsx';
+import AgentList from '//src/components/AgentList.jsx';
+import ChatBubble from '//src/components/ChatBubble.jsx';
+import Button from '//src/components/Button.jsx';
+import AgentControls from '//src/components/AgentControls.jsx';
 
 export default function Home() {
   const [prompt, setPrompt] = useState('');
