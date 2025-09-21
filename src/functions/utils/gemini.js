@@ -1,35 +1,46 @@
 // netlify/functions/utils/gemini.js
+import fetch from 'node-fetch';
+import { GoogleAuth } from 'google-auth-library';
+
 export async function callGemini(prompt, model = 'gemini-1.5-pro') {
-  if (!process.env.GEMINI_API_KEY || !process.env.GC_PROJECT_ID) {
-    console.warn('Missing GEMINI_API_KEY or GC_PROJECT_ID, skipping Gemini');
+  // Ensure the environment variables are set
+  if (!process.env.GEMINI_KEY_JSON || !process.env.GC_PROJECT_ID) {
+    console.warn('Missing GEMINI_KEY_JSON or GC_PROJECT_ID');
     return '*Gemini unavailable*';
   }
 
   try {
-    const url = `https://generativelanguage.googleapis.com/v1beta/projects/${process.env.GC_PROJECT_ID}/models/${model}:generateText?key=${process.env.GEMINI_API_KEY}`;
+    // Parse the service account JSON from env
+    const credentials = JSON.parse(process.env.GEMINI_KEY_JSON);
 
-    const resp = await fetch(url, {
+    // Create Google Auth client
+    const auth = new GoogleAuth({
+      credentials,
+      scopes: ['https://www.googleapis.com/auth/cloud-platform'],
+    });
+    const client = await auth.getClient();
+
+    // Construct the Gemini API endpoint
+    const url = `https://us-central1-aiplatform.googleapis.com/v1/projects/${process.env.GC_PROJECT_ID}/locations/us-central1/publishers/google/models/${model}:predict`;
+
+    // Make the request
+    const res = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Authorization': `Bearer ${await client.getAccessToken()}`,
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify({
-        prompt: { text: prompt },
-        temperature: 0.7,
-        candidateCount: 1
+        instances: [{ content: prompt }],
+        parameters: { temperature: 0.7 },
       }),
     });
 
-    const text = await resp.text();
-
-    if (!text) {
-      console.error('Gemini returned empty response');
-      return '*Error: Gemini returned no data*';
-    }
-
-    // Return raw text (no JSON parsing)
-    return text.trim();
-
+    // Parse response
+    const data = await res.json();
+    return data.predictions?.[0]?.content || '*No response from Gemini*';
   } catch (err) {
-    console.error('Gemini fetch error:', err);
+    console.error('Gemini client error:', err);
     return `*Error: Gemini fetch failed (${err.message})*`;
   }
 }
