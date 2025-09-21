@@ -14,7 +14,7 @@ export async function handler(event) {
       };
     }
 
-    // Helper to safely call an LLM
+    // Helper to safely call an LLM and return an error message in response
     async function safeCall(fn, name) {
       try {
         const res = await fn(prompt);
@@ -25,14 +25,14 @@ export async function handler(event) {
       }
     }
 
-    // Gather responses concurrently
+    // Call LLMs concurrently
     const [openaiRes, claudeRes, geminiRes] = await Promise.all([
       safeCall(callOpenAI, 'OpenAI'),
       safeCall(callClaude, 'Claude'),
       safeCall(callGemini, 'Gemini'),
     ]);
 
-    // Moderator step: OpenAI merges
+    // Include raw responses including any error messages
     const moderatorPrompt = `
 You are the moderator of the Areopagus council.
 Your task: merge and refine the following answers into one final reply that is
@@ -61,6 +61,11 @@ Final Moderated Answer:
       id: Date.now().toString(),
       senderId: 'council',
       text: moderatedAnswer,
+      rawResponses: {
+        OpenAI: openaiRes,
+        Claude: claudeRes,
+        Gemini: geminiRes,
+      },
       ts: Date.now(),
     };
 
