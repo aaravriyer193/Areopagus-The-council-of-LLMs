@@ -18,10 +18,10 @@ export async function handler(event) {
     async function safeCall(fn, name) {
       try {
         const res = await fn(prompt);
-        return res || `*No response from ${name}*`;
+        return { response: res || null, success: !!res };
       } catch (err) {
         console.error(`${name} error:`, err);
-        return `*Error: ${name} failed to load or respond*`;
+        return { response: null, success: false, error: err.message };
       }
     }
 
@@ -32,7 +32,14 @@ export async function handler(event) {
       safeCall(callGemini, 'Gemini'),
     ]);
 
-    // Include raw responses including any error messages
+    // Prepare status log for each model
+    const statusLog = {
+      OpenAI: openaiRes.success ? 'Responded' : `Failed (${openaiRes.error || 'No response'})`,
+      Claude: claudeRes.success ? 'Responded' : `Failed (${claudeRes.error || 'No response'})`,
+      Gemini: geminiRes.success ? 'Responded' : `Failed (${geminiRes.error || 'No response'})`,
+    };
+
+    // Moderator prompt to merge responses
     const moderatorPrompt = `
 You are the moderator of the Areopagus council.
 Your task: merge and refine the following answers into one final reply that is
@@ -44,13 +51,13 @@ Your task: merge and refine the following answers into one final reply that is
 User Prompt: ${prompt}
 
 --- OpenAI Response ---
-${openaiRes}
+${openaiRes.response || '*No response*'}
 
 --- Claude Response ---
-${claudeRes}
+${claudeRes.response || '*No response*'}
 
 --- Gemini Response ---
-${geminiRes}
+${geminiRes.response || '*No response*'}
 
 Final Moderated Answer:
     `;
@@ -60,11 +67,13 @@ Final Moderated Answer:
     const message = {
       id: Date.now().toString(),
       senderId: 'council',
+      prompt: prompt,               // include the user prompt in output
       text: moderatedAnswer,
+      statusLog: statusLog,         // include whether each model responded
       rawResponses: {
-        OpenAI: openaiRes,
-        Claude: claudeRes,
-        Gemini: geminiRes,
+        OpenAI: openaiRes.response || `*Error: ${openaiRes.error || 'No response'}*`,
+        Claude: claudeRes.response || `*Error: ${claudeRes.error || 'No response'}*`,
+        Gemini: geminiRes.response || `*Error: ${geminiRes.error || 'No response'}*`,
       },
       ts: Date.now(),
     };
