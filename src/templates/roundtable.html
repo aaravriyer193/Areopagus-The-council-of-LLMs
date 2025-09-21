@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Areopagus — Roundtable</title>
+  <link rel="icon" type="image/png" href="favicon.png">
+  <meta name="description" content="Areopagus: A council of AI minds in dialogue." />
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:wght@400;600;700&display=swap" rel="stylesheet">
+  <!-- Markdown + Sanitizer -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.7/dist/purify.min.js"></script>
+  <style>
+    :root{
+      /* Ancient Greek marble + beige palette */
+      --bg:#f5f0e6;
+      --card:#ffffff;
+      --text:#2c2620;
+      --muted:#7c6f63;
+      --border:#ddd4c7;
+
+      --gold:#b89b5e;
+      --gold-2:#d4b97c;
+      --marble:#f5f0e6;
+      --bronze:#8b6b4a;
+
+      --chip-bg:#f9f6ef;   /* light parchment */
+      --user:#ece7da;      /* user bubble */
+      --council:#f5f0e6;   /* council bubble */
+
+      --shadow:0 6px 22px rgba(0,0,0,0.08);
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; background:
+        linear-gradient(120deg, rgba(184,155,94,0.06), rgba(245,240,230,0.04)) fixed,
+        var(--bg);
+      color:var(--text);
+      font-family:"Crimson Text", serif;
+      display:flex; min-height:100vh;
+    }
+
+    .app{
+      display:grid; grid-template-rows:auto 1fr auto;
+      max-width:1100px; width:100%; margin:0 auto; min-height:100vh;
+      padding:16px; gap:16px;
+    }
+
+    header{
+      display:flex; align-items:center; justify-content:space-between;
+      background:var(--card);
+      border:1px solid var(--border); border-radius:0; padding:12px 16px; box-shadow:var(--shadow);
+      position:relative; overflow:visible;
+    }
+    header::after{
+      content:"";
+      position:absolute; left:0; right:0; bottom:-1px; height:4px;
+      background:linear-gradient(90deg, var(--gold), var(--bronze));
+    }
+    h1{font-size:20px; margin:0; font-weight:700}
+    .sub{font-size:13px; color:var(--muted); margin-top:2px}
+    .actions{display:flex; gap:8px; align-items:center}
+
+    button{
+      border:none; border-radius:0; padding:10px 14px; cursor:pointer; font-weight:700;
+      transition:transform .06s ease, filter .15s ease, box-shadow .15s ease;
+      font-family:"Crimson Text", serif;
+    }
+    button.primary{
+      background:linear-gradient(135deg, var(--gold), var(--gold-2));
+      color:#fff; box-shadow:0 4px 12px rgba(184,155,94,0.25);
+    }
+    button.secondary{
+      background:#fff; color:var(--gold); border:2px solid var(--gold);
+    }
+    button.ghost{
+      background:#fff; color:#8b8276; border:2px dashed #cfc5b5;
+    }
+    button:hover{transform:translateY(-1px); filter:saturate(106%)}
+    button:active{transform:translateY(0)}
+
+    .wrap{display:grid; grid-template-columns:280px 1fr; gap:16px}
+    @media (max-width: 960px){ .wrap{grid-template-columns:1fr} }
+
+    .sidebar{
+      background:var(--card); border:1px solid var(--border); border-radius:0; padding:14px;
+      box-shadow:var(--shadow); max-height:calc(100vh - 180px); overflow:auto;
+    }
+    .helper{display:flex; gap:8px; flex-wrap:wrap; padding:6px 0;}
+    .chip{
+      background:var(--chip-bg); padding:8px 12px; border-radius:0;
+      border:1px solid rgba(184,155,94,0.55); color:#5a4634; font-size:12px; cursor:pointer;
+    }
+    .history{margin-top:12px; display:flex; flex-direction:column; gap:8px;}
+    .hist-item{
+      background:var(--card); border:1px solid var(--border); padding:10px; border-radius:0; cursor:pointer; font-size:13px; color:var(--muted)
+    }
+    .hist-item:hover{border-color:#c5c0b4; color:var(--text)}
+
+    .chat{
+      position:relative;
+      background:var(--card); border:1px solid var(--border); border-radius:0; padding:0;
+      display:flex; flex-direction:column; box-shadow:var(--shadow); min-height:65vh;
+    }
+    .messages{padding:16px; overflow:auto; flex:1; display:flex; flex-direction:column; gap:12px; max-height:65vh}
+    .msg{display:flex; gap:10px; align-items:flex-start}
+    .avatar{
+      width:28px; height:28px; border-radius:0; display:grid; place-items:center; flex:0 0 28px; color:#fff;
+      background:linear-gradient(135deg, var(--gold), var(--bronze));
+      font-size:12px; font-weight:800;
+    }
+    .avatar.user{
+      background:linear-gradient(135deg, var(--bronze), var(--gold));
+    }
+    .avatar span{line-height:1}
+
+    .bubble{
+      background:var(--council); border:1px solid #e5dfd4; border-radius:0; padding:10px 12px; font-size:15px; line-height:1.6;
+      max-width:780px; white-space:normal; color:#2c2620;
+    }
+    .msg.user .bubble{
+      background:var(--user); border:1px solid #d6d0c4; color:#2c2620;
+    }
+    .bubble pre{background:#fff; border:1px solid #ececf3; padding:10px; border-radius:0; overflow:auto}
+
+    .input{
+      border-top:1px solid var(--border); display:flex; gap:10px; padding:12px; background:#fff;
+      border-radius:0;
+    }
+    textarea{
+      flex:1; background:#fff; color:var(--text); border:1px solid var(--border); border-radius:0; padding:12px; font-size:15px; resize:none; min-height:48px;
+      font-family: Arial, "Crimson Text", serif;
+    }
+
+    .footer{font-size:12px; color:var(--muted); text-align:center; padding:8px}
+
+    .loading-overlay{
+      position:absolute; inset:0;
+      background:rgba(255,255,255,0.75);
+      display:none; align-items:center; justify-content:center;
+    }
+    .loading-overlay.show{display:flex;}
+    .square-loader{
+      width:44px; height:44px; position:relative;
+      display:grid; grid-template-columns:repeat(2, 20px); grid-template-rows:repeat(2, 20px); gap:4px;
+    }
+    .square-loader div{
+      width:20px; height:20px; background:var(--gold);
+      animation:blink 1s infinite;
+    }
+    .square-loader div:nth-child(2){animation-delay:.1s; background:linear-gradient(0deg,var(--gold),var(--gold-2))}
+    .square-loader div:nth-child(3){animation-delay:.2s; background:linear-gradient(0deg,var(--bronze),var(--gold))}
+    .square-loader div:nth-child(4){animation-delay:.3s; background:linear-gradient(0deg,var(--gold),var(--bronze))}
+    @keyframes blink{
+      0%,100%{opacity:.35; transform:scale(0.9)}
+      50%{opacity:1; transform:scale(1)}
+    }
+
+    a{color:var(--gold-2); text-decoration:none}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div>
+        <h1>⚖️ Areopagus</h1>
+        <div class="sub">A council of minds in dialogue</div>
+      </div>
+      <div class="actions">
+        <button class="secondary" id="exportBtn">Save</button>
+        <button class="ghost" id="clearBtn">Clear</button>
+        <button class="primary" id="newBtn">New</button>
+      </div>
+    </header>
+
+    <div class="wrap">
+      <aside class="sidebar">
+        <div><strong>Quick Prompts</strong></div>
+        <div class="helper" id="quick">
+          <div class="chip">What is justice?</div>
+          <div class="chip">Explain democracy in 3 lines</div>
+          <div class="chip">Compare Plato and Aristotle</div>
+          <div class="chip">Modern agora vs ancient agora</div>
+        </div>
+
+        <div style="margin-top:10px"><strong>Sessions</strong></div>
+        <div class="history" id="history"></div>
+      </aside>
+
+      <main class="chat">
+        <div class="messages" id="messages"></div>
+
+        <div id="loadingOverlay" class="loading-overlay" aria-live="polite" aria-label="Loading">
+          <div class="square-loader" role="status" aria-label="Loading">
+            <div></div><div></div><div></div><div></div>
+          </div>
+        </div>
+
+        <div class="input">
+          <textarea id="prompt" placeholder="Pose your question to the council. Press Enter to send."></textarea>
+          <button class="primary" id="sendBtn">Send</button>
+        </div>
+      </main>
+    </div>
+
+    <div class="footer">© Areopagus — A meeting of minds</div>
+  </div>
+
+<script>
+const FN_URL = "/.netlify/functions/roundtable";
+const storeKey = "areopagus_history_v1";
+let sessionId = Date.now().toString(36);
+let history = []; // {role, content}
+
+function el(tag, attrs={}, ...children){
+  const e = document.createElement(tag);
+  Object.entries(attrs).forEach(([k,v]) => {
+    if (k === "class") e.className = v;
+    else if (k === "html") e.innerHTML = v;
+    else e.setAttribute(k, v);
+  });
+  children.forEach(c => { if (typeof c === "string") e.appendChild(document.createTextNode(c)); else if (c) e.appendChild(c); });
+  return e;
+}
+
+function saveSession() {
+  const all = JSON.parse(localStorage.getItem(storeKey) || "{}");
+  all[sessionId] = history;
+  localStorage.setItem(storeKey, JSON.stringify(all));
+  renderHistoryList(all);
+}
+
+function renderHistoryList(all=null){
+  if(!all) all = JSON.parse(localStorage.getItem(storeKey) || "{}");
+  const wrap = document.getElementById("history");
+  wrap.innerHTML = "";
+  const ids = Object.keys(all).sort((a,b)=>b.localeCompare(a));
+  ids.forEach(id => {
+    const first = all[id]?.find(m=>m.role==="user")?.content?.slice(0,60) || "Session";
+    const item = el("div", {class:"hist-item"} , first);
+    item.onclick = () => {
+      sessionId = id;
+      history = all[id] || [];
+      renderMessages();
+    };
+    wrap.appendChild(item);
+  });
+}
+
+function addMessage(role, content){
+  history.push({ role, content });
+  renderMessages();
+  saveSession();
+}
+
+function mdToHtml(markdown){
+  try{
+    const raw = window.marked ? marked.parse(markdown) : markdown.replace(/\n/g,"<br>");
+    return window.DOMPurify ? DOMPurify.sanitize(raw) : raw;
+  }catch(e){ return markdown; }
+}
+
+function renderMessages(){
+  const m = document.getElementById("messages");
+  m.innerHTML = "";
+  history.forEach(msg => {
+    const row = el("div", {class:"msg " + (msg.role === "user" ? "user" : "")});
+    const avatar = el("div",{class:"avatar " + (msg.role === "user" ? "user" : "")});
+    avatar.appendChild(el("span",{}, msg.role === "user" ? "U" : "C"));
+    const bubble = el("div",{class:"bubble"});
+    if(msg.role === "council"){
+      bubble.innerHTML = mdToHtml(msg.content);
+    }else{
+      bubble.appendChild(el("div",{}, msg.content));
+    }
+    row.appendChild(avatar);
+    row.appendChild(bubble);
+    m.appendChild(row);
+  });
+  m.scrollTop = m.scrollHeight;
+}
+
+function setLoading(on){
+  const overlay = document.getElementById("loadingOverlay");
+  overlay.classList.toggle("show", !!on);
+  document.getElementById("sendBtn").disabled = !!on;
+}
+
+async function sendPrompt(){
+  const ta = document.getElementById("prompt");
+  const text = ta.value.trim();
+  if(!text) return;
+  addMessage("user", text);
+  ta.value = "";
+  setLoading(true);
+
+  try{
+    const res = await fetch(FN_URL, {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ prompt: text })
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error || "Server error");
+
+    if(Array.isArray(data)){
+      data.forEach(msg => {
+        addMessage("council", msg.text);
+      });
+    } else {
+      addMessage("council", data.reply || JSON.stringify(data));
+    }
+  }catch(err){
+    addMessage("council", "**Sorry**, something went wrong.\n\n- Check network\n- Ensure Netlify function works\n- Try again");
+  }finally{
+    setLoading(false);
+  }
+}
+
+document.getElementById("sendBtn").onclick = sendPrompt;
+document.getElementById("prompt").addEventListener("keydown", e => {
+  if(e.key === "Enter" && !e.shiftKey){ e.preventDefault(); sendPrompt(); }
+});
+document.getElementById("exportBtn").onclick = ()=>{
+  const all = JSON.parse(localStorage.getItem(storeKey) || "{}");
+  const blob = new Blob([JSON.stringify(all, null, 2)], {type:"application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = el("a",{href:url, download:"areopagus-history.json"});
+  document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+};
+document.getElementById("clearBtn").onclick = ()=>{
+  if (!confirm("Clear all saved sessions?")) return;
+  localStorage.removeItem(storeKey);
+  history = [];
+  sessionId = Date.now().toString(36);
+  renderHistoryList({});
+  renderMessages();
+};
+document.getElementById("newBtn").onclick = ()=>{
+  sessionId = Date.now().toString(36);
+  history = [];
+  renderMessages();
+  saveSession();
+};
+document.getElementById("quick").addEventListener("click", e => {
+  if(e.target.classList.contains("chip")){
+    document.getElementById("prompt").value = e.target.textContent;
+    document.getElementById("prompt").focus();
+  }
+});
+
+// Init
+(function init(){
+  renderHistoryList();
+  addMessage("council","**Welcome to the Areopagus.**\n\nPose your question and the council will deliberate.");
+})();
+</script>
+</body>
+</html>
