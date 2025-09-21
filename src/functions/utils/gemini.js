@@ -11,7 +11,7 @@ export async function callGemini(prompt, model = 'gemini-1.5-pro') {
     // Parse service account JSON
     const credentials = JSON.parse(process.env.GEMINI_KEY_JSON);
 
-    // Authenticate with Google
+    // Authenticate
     const auth = new GoogleAuth({
       credentials,
       scopes: ['https://www.googleapis.com/auth/cloud-platform'],
@@ -19,7 +19,7 @@ export async function callGemini(prompt, model = 'gemini-1.5-pro') {
     const client = await auth.getClient();
     const accessToken = await client.getAccessToken();
 
-    // Gemini service account endpoint
+    // Gemini predict endpoint
     const url = `https://us-central1-aiplatform.googleapis.com/v1/projects/${process.env.GC_PROJECT_ID}/locations/us-central1/publishers/google/models/${model}:predict`;
 
     const res = await fetch(url, {
@@ -36,12 +36,12 @@ export async function callGemini(prompt, model = 'gemini-1.5-pro') {
 
     const data = await res.json();
 
-    if (!data.predictions?.[0]?.content) {
-      console.warn('Gemini returned no predictions', data);
-      return '*No response from Gemini*';
-    }
+    // Always return something
+    if (data.predictions?.[0]?.content) return data.predictions[0].content;
 
-    return data.predictions[0].content;
+    // fallback: any other field or raw JSON
+    if (data.predictions?.[0]?.output) return data.predictions[0].output;
+    return JSON.stringify(data) || '*No response from Gemini*';
   } catch (err) {
     console.error('Gemini client error:', err);
     return `*Error: Gemini fetch failed (${err.message})*`;
