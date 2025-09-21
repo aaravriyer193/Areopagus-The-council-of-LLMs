@@ -1,4 +1,4 @@
-// netlify/functions/utils/gemini.js
+// src/functions/utils/gemini.js
 import { GoogleAuth } from 'google-auth-library';
 
 export async function callGemini(prompt, model = 'gemini-1.5-pro') {
@@ -8,21 +8,24 @@ export async function callGemini(prompt, model = 'gemini-1.5-pro') {
   }
 
   try {
+    // Parse service account JSON
     const credentials = JSON.parse(process.env.GEMINI_KEY_JSON);
 
+    // Authenticate with Google
     const auth = new GoogleAuth({
       credentials,
       scopes: ['https://www.googleapis.com/auth/cloud-platform'],
     });
-
     const client = await auth.getClient();
+    const accessToken = await client.getAccessToken();
 
+    // Gemini service account endpoint
     const url = `https://us-central1-aiplatform.googleapis.com/v1/projects/${process.env.GC_PROJECT_ID}/locations/us-central1/publishers/google/models/${model}:predict`;
 
     const res = await fetch(url, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${await client.getAccessToken()}`,
+        'Authorization': `Bearer ${accessToken}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -32,7 +35,13 @@ export async function callGemini(prompt, model = 'gemini-1.5-pro') {
     });
 
     const data = await res.json();
-    return data.predictions?.[0]?.content || '*No response from Gemini*';
+
+    if (!data.predictions?.[0]?.content) {
+      console.warn('Gemini returned no predictions', data);
+      return '*No response from Gemini*';
+    }
+
+    return data.predictions[0].content;
   } catch (err) {
     console.error('Gemini client error:', err);
     return `*Error: Gemini fetch failed (${err.message})*`;
