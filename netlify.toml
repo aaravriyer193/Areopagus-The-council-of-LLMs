@@ -1,8 +1,6 @@
 [build]
-  command = "npm run build"
-  # set publish to "build" (CRA) or "dist" (Vite); change accordingly
-  publish = "build"
+  command = ""                 # no npm build step, just serve static files
+  publish = "src/templates"    # this is where index.html and pages live
 
 [functions]
   directory = "src/functions"
-
