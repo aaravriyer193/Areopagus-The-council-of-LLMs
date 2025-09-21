@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Areopagus — Council of Minds</title>
+  <link rel="icon" type="image/png" href="favicon.png">
+  <meta name="description" content="Areopagus — A council of large language models including Claude, Gemini, and ChatGPT, deliberating together.">
+  <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#f5f0e6;
+      --card:#fffdf9;
+      --text:#2b2119;
+      --muted:#7a6a58;
+      --border:#d9d2c6;
+
+      --accent1:#a67c52;  /* bronze */
+      --accent2:#c9a66b;  /* sand gold */
+      --accent3:#846c5b;  /* clay */
+
+      --chip-bg:#f8f4ec;
+      --user:#f1ede7;
+      --bot:#f9f6f0;
+
+      --shadow:0 6px 20px rgba(80,60,40,0.10);
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; background:linear-gradient(120deg, rgba(166,124,82,0.06), rgba(201,166,107,0.04)) fixed, var(--bg);
+      color:var(--text);
+      font-family:"Crimson Pro", Georgia, serif;
+      display:flex; min-height:100vh;
+    }
+
+    .app{
+      display:grid; grid-template-rows:auto 1fr auto;
+      max-width:1100px; width:100%; margin:0 auto; min-height:100vh;
+      padding:16px; gap:16px;
+    }
+
+    header{
+      display:flex; align-items:center; justify-content:space-between;
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:0; padding:16px 20px; box-shadow:var(--shadow);
+      position:relative; overflow:visible;
+    }
+    header::after{
+      content:"";
+      position:absolute; left:0; right:0; bottom:-1px; height:4px;
+      background:linear-gradient(90deg, var(--accent1), var(--accent2));
+    }
+    h1{font-size:22px; margin:0; letter-spacing:.5px; font-weight:700}
+    .sub{font-size:13px; color:var(--muted); margin-top:2px}
+
+    nav{display:flex; gap:14px; align-items:center}
+    nav a{
+      text-decoration:none; font-weight:600; color:var(--accent3); padding:6px 10px;
+      border:1px solid transparent;
+    }
+    nav a:hover{
+      border-bottom:2px solid var(--accent1); color:var(--text);
+    }
+
+    main{
+      background:var(--card);
+      border:1px solid var(--border);
+      box-shadow:var(--shadow);
+      padding:40px;
+      display:flex; flex-direction:column; justify-content:center; align-items:center;
+      text-align:center;
+    }
+
+    main h2{font-size:28px; margin-bottom:12px; color:var(--accent1);}
+    main p{max-width:720px; font-size:18px; line-height:1.6; margin-bottom:24px; color:var(--text);}
+    .button{
+      display:inline-block; padding:12px 28px;
+      background:linear-gradient(135deg, var(--accent1), var(--accent2));
+      color:#fff; font-weight:700; text-decoration:none;
+      box-shadow:0 4px 12px rgba(80,60,40,0.2);
+      transition:all .15s ease;
+    }
+    .button:hover{transform:translateY(-2px);}
+
+    footer{font-size:12px; color:var(--muted); text-align:center; padding:10px}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div>
+        <h1>Areopagus</h1>
+        <div class="sub">Council of Minds — Claude · Gemini · ChatGPT</div>
+      </div>
+      <nav>
+        <a href="index.html">Home</a>
+        <a href="roundtable.html">Roundtable</a>
+        <a href="about.html">About</a>
+        <a href="archive.html">Archive</a>
+      </nav>
+    </header>
+
+    <main>
+      <h2>Deliberation, the Ancient Way</h2>
+      <p>
+        Areopagus is a modern reimagining of the ancient Athenian council, where wisdom emerged through debate.  
+        Here, leading large language models — <strong>Claude</strong>, <strong>Gemini</strong>, and <strong>ChatGPT</strong> —  
+        gather at a virtual roundtable. Each offers their perspective. A moderator refines them into one clear voice.
+      </p>
+      <a href="roundtable.html" class="button">Enter the Roundtable</a>
+    </main>
+
+    <footer>© Areopagus — A council of LLMs deliberating together.</footer>
+  </div>
+</body>
+</html>
