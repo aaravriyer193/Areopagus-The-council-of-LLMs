@@ -14,7 +14,6 @@ export async function handler(event) {
       };
     }
 
-    // Helper to safely call an LLM and return an error message in response
     async function safeCall(fn, name) {
       try {
         const res = await fn(prompt);
@@ -25,21 +24,32 @@ export async function handler(event) {
       }
     }
 
-    // Call LLMs concurrently
     const [openaiRes, claudeRes, geminiRes] = await Promise.all([
       safeCall(callOpenAI, 'OpenAI'),
       safeCall(callClaude, 'Claude'),
       safeCall(callGemini, 'Gemini'),
     ]);
 
-    // Prepare status log for each model
-    const statusLog = {
-      OpenAI: openaiRes.success ? 'Responded' : `Failed (${openaiRes.error || 'No response'})`,
-      Claude: claudeRes.success ? 'Responded' : `Failed (${claudeRes.error || 'No response'})`,
-      Gemini: geminiRes.success ? 'Responded' : `Failed (${geminiRes.error || 'No response'})`,
-    };
+    // Create inline status for the chatbubble
+    const statusText = `
+**Prompt:** ${prompt}
 
-    // Moderator prompt to merge responses
+**Model Status:**
+- OpenAI: ${openaiRes.success ? '✅ Responded' : `❌ Failed (${openaiRes.error || 'No response'})`}
+- Claude: ${claudeRes.success ? '✅ Responded' : `❌ Failed (${claudeRes.error || 'No response'})`}
+- Gemini: ${geminiRes.success ? '✅ Responded' : `❌ Failed (${geminiRes.error || 'No response'})`}
+
+**Raw Responses:**
+--- OpenAI ---
+${openaiRes.response || '*No response*'}
+
+--- Claude ---
+${claudeRes.response || '*No response*'}
+
+--- Gemini ---
+${geminiRes.response || '*No response*'}
+`;
+
     const moderatorPrompt = `
 You are the moderator of the Areopagus council.
 Your task: merge and refine the following answers into one final reply that is
@@ -48,33 +58,17 @@ Your task: merge and refine the following answers into one final reply that is
 - concise,
 - and draws the best insights from each.
 
-User Prompt: ${prompt}
-
---- OpenAI Response ---
-${openaiRes.response || '*No response*'}
-
---- Claude Response ---
-${claudeRes.response || '*No response*'}
-
---- Gemini Response ---
-${geminiRes.response || '*No response*'}
+${statusText}
 
 Final Moderated Answer:
-    `;
+`;
 
     const moderatedAnswer = await callOpenAI(moderatorPrompt);
 
     const message = {
       id: Date.now().toString(),
       senderId: 'council',
-      prompt: prompt,               // include the user prompt in output
-      text: moderatedAnswer,
-      statusLog: statusLog,         // include whether each model responded
-      rawResponses: {
-        OpenAI: openaiRes.response || `*Error: ${openaiRes.error || 'No response'}*`,
-        Claude: claudeRes.response || `*Error: ${claudeRes.error || 'No response'}*`,
-        Gemini: geminiRes.response || `*Error: ${geminiRes.error || 'No response'}*`,
-      },
+      text: `${statusText}\n**Moderated Answer:**\n${moderatedAnswer}`,
       ts: Date.now(),
     };
 
