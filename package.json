@@ -1,3 +1,18 @@
-"dependencies": {
-  "google-auth-library": "^9.0.0"
+{
+  "name": "areopagus-functions",
+  "version": "1.0.0",
+  "description": "Netlify functions for Areopagus roundtable AI",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "echo 'No build step required for functions'",
+    "start": "netlify dev"
+  },
+  "dependencies": {
+    "google-auth-library": "^9.0.0"
+  },
+  "devDependencies": {},
+  "netlify": {
+    "functions": "src/functions"
+  }
 }
