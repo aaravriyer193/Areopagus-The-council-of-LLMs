@@ -14,11 +14,22 @@ export async function handler(event) {
       };
     }
 
+    // Helper to safely call an LLM
+    async function safeCall(fn, name) {
+      try {
+        const res = await fn(prompt);
+        return res || `*No response from ${name}*`;
+      } catch (err) {
+        console.error(`${name} error:`, err);
+        return `*Error: ${name} failed to load or respond*`;
+      }
+    }
+
     // Gather responses concurrently
     const [openaiRes, claudeRes, geminiRes] = await Promise.all([
-      callOpenAI(prompt),
-      callClaude(prompt),
-      callGemini(prompt),
+      safeCall(callOpenAI, 'OpenAI'),
+      safeCall(callClaude, 'Claude'),
+      safeCall(callGemini, 'Gemini'),
     ]);
 
     // Moderator step: OpenAI merges
