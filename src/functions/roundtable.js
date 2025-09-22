@@ -1,5 +1,5 @@
 import { callOpenAI } from './utils/openai.js';
-import { callClaude } from './utils/groq.js';
+import { callGroq } from './utils/groq.js';
 import { callGemini } from './utils/gemini.js';
 
 export async function handler(event) {
@@ -23,9 +23,9 @@ export async function handler(event) {
       }
     }
 
-    const [openaiRes, claudeRes, geminiRes] = await Promise.all([
+    const [openaiRes, groqRes, geminiRes] = await Promise.all([
       safeCall(callOpenAI, 'OpenAI'),
-      safeCall(callClaude, 'Claude'),
+      safeCall(callGroq, 'Groq'),
       safeCall(callGemini, 'Gemini'),
     ]);
 
@@ -35,15 +35,15 @@ export async function handler(event) {
 
 **Model Status:**
 - OpenAI: ${openaiRes.success ? '✅ Responded' : `❌ Failed (${openaiRes.error || 'No response'})`}
-- Claude: ${claudeRes.success ? '✅ Responded' : `❌ Failed (${claudeRes.error || 'No response'})`}
+- Groq: ${groqRes.success ? '✅ Responded' : `❌ Failed (${groqRes.error || 'No response'})`}
 - Gemini: ${geminiRes.success ? '✅ Responded' : `❌ Failed (${geminiRes.error || 'No response'})`}
 
 **Raw Responses:**
 --- OpenAI ---
 ${openaiRes.response || '*No response*'}
 
---- Claude ---
-${claudeRes.response || '*No response*'}
+--- Groq ---
+${groqRes.response || '*No response*'}
 
 --- Gemini ---
 ${geminiRes.response || '*No response*'}
