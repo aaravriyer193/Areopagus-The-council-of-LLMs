@@ -1,5 +1,5 @@
 import { callOpenAI } from './utils/openai.js';
-import { callClaude } from './utils/claude.js';
+import { callClaude } from './utils/groq.js';
 import { callGemini } from './utils/gemini.js';
 
 export async function handler(event) {
