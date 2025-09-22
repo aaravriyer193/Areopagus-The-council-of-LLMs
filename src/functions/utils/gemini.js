@@ -1,85 +1,65 @@
-// Import the GoogleAuth library for authenticating with Google Cloud services.
-import { GoogleAuth } from 'google-auth-library';
-
 /**
- * Sends a prompt to a Gemini model on Google Cloud Vertex AI using a service account.
+ * Sends a text prompt to a Gemini model using the Google AI Studio API.
+ * This is a simpler method than using the Vertex AI endpoint and is
+ * ideal for development and prototyping with the free tier.
  *
  * @param {string} prompt The text prompt to send to the model.
- * @param {string} [model='gemini-1.5-flash-preview-0514'] The specific Vertex AI model to use.
+ * @param {string} [model='gemini-1.5-flash-preview-0514'] The specific model to use.
  * @returns {Promise<string>} A promise that resolves to the model's text response or an error message.
  */
 export async function callGemini(prompt, model = 'gemini-1.5-flash-preview-0514') {
-  // Check for the required environment variables.
-  if (!process.env.GEMINI_KEY_JSON || !process.env.GC_PROJECT_ID) {
-    console.warn('Missing GEMINI_KEY_JSON or GC_PROJECT_ID environment variables.');
-    return '*Gemini is unavailable: Your Google Cloud configuration is incomplete.*';
+  // Check for the required environment variable.
+  // The Google AI Studio API uses a simple API key, not a service account JSON.
+  if (!process.env.GEMINI_API_KEY) {
+    console.warn('Missing GEMINI_API_KEY environment variable.');
+    return '*Gemini is unavailable: Your Google AI Studio configuration is incomplete.*';
   }
 
+  // Use a try-catch block to handle potential errors during the API call.
   try {
-    // --- Step 1: Authentication ---
-    // Parse the service account credentials stored in the environment variable.
-    const credentials = JSON.parse(process.env.GEMINI_KEY_JSON);
+    const apiKey = process.env.GEMINI_API_KEY;
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
-    // Create a new GoogleAuth client with the provided credentials and required scope.
-    const auth = new GoogleAuth({
-      credentials,
-      scopes: ['https://www.googleapis.com/auth/cloud-platform'],
-    });
+    // The request body for the Google AI Studio endpoint is different.
+    const requestBody = {
+      contents: [{
+        parts: [{ text: prompt }],
+      }],
+      generationConfig: {
+        temperature: 0.7,
+        maxOutputTokens: 2048,
+        topP: 0.95,
+        topK: 40,
+      },
+    };
 
-    // Get an authenticated client and generate an OAuth2 access token.
-    const client = await auth.getClient();
-    const accessToken = await client.getAccessToken();
-
-    // --- Step 2: API Endpoint Construction ---
-    // Construct the URL for the Vertex AI predict endpoint.
-    const projectId = process.env.GC_PROJECT_ID;
-    const location = 'us-central1'; // Or your specific GCP region
-    const url = `https://${location}-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${location}/publishers/google/models/${model}:predict`;
-
-    // --- Step 3: API Request ---
-    // Make the POST request to the Vertex AI API.
-    const response = await fetch(url, {
+    // Make the POST request to the Google AI Studio API.
+    const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${accessToken.token}`,
         'Content-Type': 'application/json',
       },
-      // The request payload must match the format expected by the Vertex AI endpoint.
-      body: JSON.stringify({
-        instances: [{
-          content: {
-            parts: [{ text: prompt }],
-          },
-        }],
-        parameters: {
-          temperature: 0.7,
-          maxOutputTokens: 2048,
-          topP: 0.95,
-          topK: 40,
-        },
-      }),
+      body: JSON.stringify(requestBody),
     });
 
     if (!response.ok) {
-        const errorBody = await response.json();
-        console.error('Vertex AI API Error:', errorBody.error);
-        return `*Error: API request failed with status ${response.status}. ${errorBody.error.message}*`;
+      const errorBody = await response.json();
+      console.error('Google AI Studio API Error:', errorBody.error);
+      return `*Error: API request failed with status ${response.status}. ${errorBody.error.message}*`;
     }
 
-    // --- Step 4: Response Parsing ---
-    // Parse the JSON response from the API.
+    // Parse the JSON response. The structure is different from the Vertex AI endpoint.
     const data = await response.json();
 
-    // Extract the generated text from the predictions array.
-    // The path is specific to the Vertex AI response structure for Gemini.
-    const text = data.predictions?.[0]?.content?.parts?.[0]?.text;
+    // Extract the generated text from the candidates array.
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
 
     if (text) {
       return text;
     }
 
     // Fallback if the response format is unexpected.
-    console.warn('Unexpected response structure from Vertex AI:', data);
+    console.warn('Unexpected response structure from Google AI Studio:', data);
     return JSON.stringify(data) || '*No valid response from Gemini*';
 
   } catch (err) {
