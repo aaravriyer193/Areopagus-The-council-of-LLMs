@@ -18,8 +18,19 @@ export async function callOpenAI(prompt, model = 'gpt-4o-mini') {
     }),
   });
 
-  const data = await resp.json();
-  if (!resp.ok) throw new Error(data.error?.message || 'OpenAI request failed');
+  let data;
+  try {
+    data = await resp.json();
+  } catch (err) {
+    const raw = await resp.text(); // fallback
+    console.error('OpenAI raw response (not JSON):', raw);
+    throw new Error(`OpenAI returned a non-JSON response: ${raw.slice(0, 200)}`);
+  }
+
+  if (!resp.ok) {
+    console.error('OpenAI API error:', data);
+    throw new Error(data.error?.message || 'OpenAI request failed');
+  }
 
   return data.choices?.[0]?.message?.content?.trim() ?? '';
 }
