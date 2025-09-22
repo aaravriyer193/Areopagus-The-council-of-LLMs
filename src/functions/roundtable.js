@@ -1,4 +1,3 @@
-// netlify/functions/roundtable.js
 import { callOpenAI } from './utils/openai.js';
 import { callClaude } from './utils/claude.js';
 import { callGemini } from './utils/gemini.js';
@@ -69,7 +68,7 @@ Final Moderated Answer:
     const message = {
       id: Date.now().toString(),
       senderId: 'council',
-      text: `${statusText}\n**Moderated Answer:**\n${moderatedAnswer}`,
+      text: moderatedAnswer,
       ts: Date.now(),
     };
 
