@@ -1,5 +1,5 @@
 // netlify/functions/utils/openai.js
-export async function callOpenAI(prompt, model = 'gpt-4.1-mini') {
+export async function callOpenAI(prompt, model = 'gpt-4.0-mini') {
   if (!process.env.OPENAI_API_KEY) {
     throw new Error('Missing OPENAI_API_KEY');
   }
