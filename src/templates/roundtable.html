@@ -28,7 +28,7 @@
   .helper{display:flex;gap:8px;flex-wrap:wrap;padding:6px 0;}
   .chip{background:var(--chip-bg);padding:8px 12px;border:1px solid rgba(184,155,94,0.55);color:#5a4634;font-size:12px;cursor:pointer;}
   .history{margin-top:12px;display:flex;flex-direction:column;gap:8px;}
-  .hist-item{background:var(--card);border:1-px solid var(--border);padding:10px;border-radius:0;cursor:pointer;font-size:13px;color:var(--muted)}
+  .hist-item{background:var(--card);border:1px solid var(--border);padding:10px;border-radius:0;cursor:pointer;font-size:13px;color:var(--muted)}
   .hist-item:hover{border-color:#c5c0b4;color:var(--text)}
   .chat{background:var(--card);border:1px solid var(--border);display:flex;flex-direction:column;box-shadow:var(--shadow);min-height:65vh;}
   .messages{padding:16px;overflow:auto;flex:1;display:flex;flex-direction:column;gap:12px;max-height:65vh}
@@ -40,39 +40,13 @@
   .input{border-top:1px solid var(--border);display:flex;gap:10px;padding:12px;background:#fff;}
   textarea{flex:1;background:#fff;border:1px solid var(--border);padding:12px;font-size:15px;resize:none;min-height:48px;font-family: Arial,"Crimson Text", serif;}
   .footer{font-size:12px;color:var(--muted);text-align:center;padding:8px}
-
-  /* --- Thinking Animation --- */
-  .bubble.thinking {
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    padding: 10px 16px;
-    width: 60px;
-    height: 40px;
-    border-radius: 20px;
-    background: var(--council);
-  }
-  .dot {
-    width: 8px;
-    height: 8px;
-    background-color: var(--muted);
-    border-radius: 50%;
-    opacity: 0.5;
-    animation: pulse 1.5s infinite ease-in-out;
-  }
-  .dot:nth-child(2) { animation-delay: 0.3s; }
-  .dot:nth-child(3) { animation-delay: 0.6s; }
-  @keyframes pulse {
-    0%, 100% { transform: scale(0.5); opacity: 0.3; }
-    50% { transform: scale(1); opacity: 0.9; }
-  }
 </style>
 </head>
 <body>
 <div class="app">
   <header>
     <div>
-      <h1>Areopagus</h1>
+      <h1>⚖️ Areopagus</h1>
       <div class="sub">A council of AI minds in dialogue</div>
     </div>
     <nav>
@@ -119,7 +93,6 @@ const FN_URL="/.netlify/functions/roundtable";
 const storeKey="areopagus_history_v1";
 let sessionId=Date.now().toString(36);
 let history=[];
-let thinkingMessageEl = null;
 
 function el(tag,attrs={},...children){
   const e=document.createElement(tag);
@@ -162,45 +135,18 @@ function renderMessages(){
     bubble.innerHTML=msg.role==="council"?DOMPurify.sanitize(marked.parse(msg.content||"")):msg.content;
     row.appendChild(av); row.appendChild(bubble); m.appendChild(row);
   });
-  if(thinkingMessageEl) m.appendChild(thinkingMessageEl);
   m.scrollTop=m.scrollHeight;
-}
-
-function createThinkingMessage(){
-  const row=el("div",{class:"msg"});
-  const av=el("div",{class:"avatar"},el("span",{},"C"));
-  const bubble=el("div",{class:"bubble thinking"});
-  bubble.appendChild(el("div",{class:"dot"}));
-  bubble.appendChild(el("div",{class:"dot"}));
-  bubble.appendChild(el("div",{class:"dot"}));
-  row.appendChild(av); row.appendChild(bubble);
-  return row;
 }
 
 // --- Prompt ---
 async function sendPrompt(){
   const ta=document.getElementById("prompt"); const text=ta.value.trim(); if(!text)return;
-  document.getElementById("sendBtn").disabled = true;
   addMessage("user",text); ta.value="";
-
-  thinkingMessageEl = createThinkingMessage();
-  renderMessages();
-
   try{
     const res=await fetch(FN_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({prompt:text})});
     const data=await res.json();
-    
-    thinkingMessageEl.remove();
-    thinkingMessageEl = null;
-
     (Array.isArray(data)?data:[data]).forEach(msg=>addMessage("council",msg.text||msg.reply||JSON.stringify(msg)));
-  }catch(err){ 
-    thinkingMessageEl.remove();
-    thinkingMessageEl = null;
-    addMessage("council","**Error:** "+err.message); 
-  } finally {
-    document.getElementById("sendBtn").disabled = false;
-  }
+  }catch(err){ addMessage("council","**Error:** "+err.message); }
 }
 
 // --- Events ---
@@ -215,4 +161,4 @@ document.getElementById("newBtn").onclick=()=>{ sessionId=Date.now().toString(36
 (function init(){ renderHistoryList(); addMessage("council","**Welcome to the Areopagus.**\n\nPose your question and the council will deliberate."); })();
 </script>
 </body>
-</html>
+</html> 
