@@ -16,10 +16,10 @@ export async function handler(event) {
     async function safeCall(fn, name) {
       try {
         const res = await fn(prompt);
-        return { response: res || null, success: !!res };
+        return { model: name, response: res || null, success: !!res };
       } catch (err) {
         console.error(`${name} error:`, err);
-        return { response: null, success: false, error: err.message };
+        return { model: name, response: null, success: false, error: err.message };
       }
     }
 
@@ -34,18 +34,18 @@ export async function handler(event) {
 **Prompt:** ${prompt}
 
 **Model Status:**
-- OpenAI: ${openaiRes.success ? '✅ Responded' : `❌ Failed (${openaiRes.error || 'No response'})`}
-- Groq: ${groqRes.success ? '✅ Responded' : `❌ Failed (${groqRes.error || 'No response'})`}
-- Gemini: ${geminiRes.success ? '✅ Responded' : `❌ Failed (${geminiRes.error || 'No response'})`}
+- ${openaiRes.model}: ${openaiRes.success ? '✅ Responded' : `❌ Failed (${openaiRes.error || 'No response'})`}
+- ${groqRes.model}: ${groqRes.success ? '✅ Responded' : `❌ Failed (${groqRes.error || 'No response'})`}
+- ${geminiRes.model}: ${geminiRes.success ? '✅ Responded' : `❌ Failed (${geminiRes.error || 'No response'})`}
 
 **Raw Responses:**
---- OpenAI ---
+--- ${openaiRes.model} ---
 ${openaiRes.response || '*No response*'}
 
---- Groq ---
+--- ${groqRes.model} ---
 ${groqRes.response || '*No response*'}
 
---- Gemini ---
+--- ${geminiRes.model} ---
 ${geminiRes.response || '*No response*'}
 `;
 
@@ -70,6 +70,7 @@ Final Moderated Answer:
       senderId: 'council',
       text: moderatedAnswer,
       ts: Date.now(),
+      sources: [openaiRes, groqRes, geminiRes], // <— you can now see who responded in the returned JSON
     };
 
     return {
