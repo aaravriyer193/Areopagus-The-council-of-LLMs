@@ -7,7 +7,7 @@
  * @param {string} [model='gemini-1.5-flash-preview-0514'] The specific model to use.
  * @returns {Promise<string>} A promise that resolves to the model's text response or an error message.
  */
-export async function callGemini(prompt, model = 'gemini-2.5-flash-preview-05-20') {
+export async function callGemini(prompt, model = 'gemini-2.5-flash-lite') {
   // Check for the required environment variable.
   // The Google AI Studio API uses a simple API key, not a service account JSON.
   if (!process.env.GEMINI_API_KEY) {
@@ -27,7 +27,7 @@ export async function callGemini(prompt, model = 'gemini-2.5-flash-preview-05-20
       }],
       generationConfig: {
         temperature: 0.7,
-        maxOutputTokens: 2048,
+        maxOutputTokens: 4096,
         topP: 0.95,
         topK: 40,
       },
