@@ -1,5 +1,5 @@
 ⚖️ Areopagus: The Council of LLMs
-A web-based chat application designed to facilitate a dialogue with a "council" of Large Language Models. Areopagus provides a clean, classical-themed interface for users to pose questions and receive responses as if from a deliberating body of AI minds.
+A web-based chat application designed to facilitate a dialogue with a "council" of Large Language Models. Areopagus provides a clean, classical-themed interface for users to pose questions and receive responses as if from a deliberating body of AI minds. 
 
 ✨ Features
 Council Deliberation: Engage in a conversation with multiple AI models, receiving their collective and unique insights.
