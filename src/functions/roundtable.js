@@ -29,7 +29,7 @@ export async function handler(event) {
       safeCall(callGemini, 'Gemini'),
     ]);
 
-    // Create inline status for the chatbubble
+    // Create inline status for moderator
     const statusText = `
 **Prompt:** ${prompt}
 
@@ -65,18 +65,32 @@ Final Moderated Answer:
 
     const moderatedAnswer = await callOpenAI(moderatorPrompt);
 
-    const message = {
+    // Build chat messages
+    const messages = [];
+
+    // Push model responses as bubbles
+    for (const res of [openaiRes, groqRes, geminiRes]) {
+      messages.push({
+        id: `${Date.now()}-${res.model}`,
+        senderId: res.model.toLowerCase(),
+        text: res.response || '*No response*',
+        ts: Date.now(),
+        success: res.success,
+      });
+    }
+
+    // Push council moderated reply
+    messages.push({
       id: Date.now().toString(),
       senderId: 'council',
       text: moderatedAnswer,
       ts: Date.now(),
-      sources: [openaiRes, groqRes, geminiRes], // <— you can now see who responded in the returned JSON
-    };
+    });
 
     return {
       statusCode: 200,
       headers: corsHeaders(),
-      body: JSON.stringify([message]),
+      body: JSON.stringify(messages),
     };
   } catch (err) {
     console.error('Roundtable error:', err);
